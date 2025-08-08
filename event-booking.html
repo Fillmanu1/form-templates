@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ฟอร์มจองตั๋วกิจกรรม</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --error: #dc2626;
+      --ok: #16a34a;
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --radius: 12px;
+    }
+    body {
+      background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDGvjdlFv0yha0VI_PUgPrtnlfZETuKRA5ZQ&s');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    .container {
+      max-width: 720px;
+      margin: 48px auto;
+      padding: 24px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 16px;
+    }
+    p.desc {
+      margin-top: 0;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    label {
+      font-weight: 600;
+    }
+    input, select {
+      padding: 12px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      background: #fff;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    }
+    .hint {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .error {
+      font-size: 0.9rem;
+      color: var(--error);
+      min-height: 1.1em;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    button {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 520px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(2,6,23,0.2);
+      animation: pop 0.18s ease-out;
+    }
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+    .modal p { margin: 0 0 16px; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    @keyframes pop {
+      from { transform: translateY(6px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>จองตั๋วกิจกรรม</h1>
+    <p class="desc">กรอกข้อมูลให้ครบถ้วน ระบบจะตรวจสอบความถูกต้องอัตโนมัติ</p>
+
+    <form id="bookingForm" novalidate>
+      <div class="grid">
+        <div class="field full">
+          <label for="fullName">ชื่อ-นามสกุล</label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            inputmode="text"
+            autocomplete="name"
+            placeholder="เช่น ณัฐดนัย ใจดี"
+            required
+            pattern="^\s*\S+(?:\s+\S+)+\s*$"
+            title="กรุณากรอกอย่างน้อย 2 คำ (มีช่องว่างคั่น)"
+            aria-describedby="nameHint nameErr"
+          />
+          <div id="nameHint" class="hint">ต้องมีอย่างน้อย 2 คำ และคั่นด้วยช่องว่าง</div>
+          <div id="nameErr" class="error" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="phone">เบอร์โทรศัพท์</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            inputmode="numeric"
+            placeholder="0XXXXXXXXX"
+            maxlength="10"
+            required
+            pattern="^0\d{9}$"
+            title="กรอกตัวเลข 10 หลัก และขึ้นต้นด้วย 0"
+            aria-describedby="phoneHint phoneErr"
+          />
+          <div id="phoneHint" class="hint">10 หลัก เริ่มด้วย 0 (เฉพาะตัวเลข)</div>
+          <div id="phoneErr" class="error" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="ticketType">ประเภทตั๋ว</label>
+          <select id="ticketType" name="ticketType" required aria-describedby="typeHint typeErr">
+            <option value="" disabled selected>— เลือกประเภท —</option>
+            <option value="normal">ปกติ</option>
+            <option value="vip">VIP</option>
+            <option value="premium">Premium</option>
+          </select>
+          <div id="typeHint" class="hint">VIP/Premium จองได้สูงสุด 2 ใบ</div>
+          <div id="typeErr" class="error" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="qty">จำนวนตั๋ว</label>
+          <input
+            id="qty"
+            name="qty"
+            type="number"
+            min="1"
+            max="5"
+            step="1"
+            required
+            placeholder="1–5"
+            aria-describedby="qtyHint qtyErr"
+          />
+          <div id="qtyHint" class="hint">อย่างน้อย 1 และไม่เกิน 5 (VIP/Premium ไม่เกิน 2)</div>
+          <div id="qtyErr" class="error" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary">ยืนยันการจอง</button>
+        <button type="reset" class="btn-secondary">ล้างข้อมูล</button>
+      </div>
+    </form>
+  </main>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="presentation" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+      <h2 id="modalTitle">จองตั๋วสำเร็จ</h2>
+      <p id="modalDesc"><span class="badge" id="resultText">—</span></p>
+      <div class="actions">
+        <button id="closeModal" class="btn-primary" autofocus>ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const form = document.getElementById('bookingForm');
+    const fullName = document.getElementById('fullName');
+    const phone = document.getElementById('phone');
+    const ticketType = document.getElementById('ticketType');
+    const qty = document.getElementById('qty');
+
+    const nameErr = document.getElementById('nameErr');
+    const phoneErr = document.getElementById('phoneErr');
+    const typeErr = document.getElementById('typeErr');
+    const qtyErr = document.getElementById('qtyErr');
+
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const resultText = document.getElementById('resultText');
+    const closeModalBtn = document.getElementById('closeModal');
+
+    // Helpers
+    function clearError(el, errEl) {
+      errEl.textContent = '';
+      el.setAttribute('aria-invalid', 'false');
+      el.setCustomValidity('');
+    }
+    function setError(el, errEl, msg) {
+      errEl.textContent = msg;
+      el.setAttribute('aria-invalid', 'true');
+      el.setCustomValidity(msg);
+    }
+    function mapTypeLabel(val) {
+      return val === 'vip' ? 'VIP' : (val === 'premium' ? 'Premium' : 'ปกติ');
+    }
+    function updateQtyMaxByType() {
+      const type = ticketType.value;
+      const hardMax = 5;
+      const vipMax = 2;
+      const newMax = (type === 'vip' || type === 'premium') ? vipMax : hardMax;
+      qty.max = String(newMax);
+      // Auto-correct value if it exceeds new max
+      if (qty.value && Number(qty.value) > newMax) {
+        qty.value = newMax;
+      }
+      // Update hint dynamically (optional)
+      const qtyHint = document.getElementById('qtyHint');
+      if (type === 'vip' || type === 'premium') {
+        qtyHint.textContent = 'อย่างน้อย 1 และไม่เกิน 2 (VIP/Premium)';
+      } else {
+        qtyHint.textContent = 'อย่างน้อย 1 และไม่เกิน 5 (VIP/Premium ไม่เกิน 2)';
+      }
+    }
+
+    // Sanitize inputs
+    phone.addEventListener('input', () => {
+      // keep only digits and limit to 10
+      const digits = phone.value.replace(/\D/g, '').slice(0, 10);
+      phone.value = digits;
+      clearError(phone, phoneErr);
+    });
+    fullName.addEventListener('input', () => {
+      clearError(fullName, nameErr);
+    });
+    ticketType.addEventListener('change', () => {
+      clearError(ticketType, typeErr);
+      updateQtyMaxByType();
+      clearError(qty, qtyErr);
+    });
+    qty.addEventListener('input', () => {
+      clearError(qty, qtyErr);
+    });
+
+    // Validation
+    function validate() {
+      let ok = true;
+
+      // Name: at least 2 words
+      const nameVal = fullName.value.trim();
+      const twoWords = /\S+(?:\s+\S+)+/u.test(nameVal);
+      if (!nameVal) {
+        setError(fullName, nameErr, 'กรุณากรอกชื่อ-นามสกุล');
+        ok = false;
+      } else if (!twoWords) {
+        setError(fullName, nameErr, 'ต้องมีอย่างน้อย 2 คำ และคั่นด้วยช่องว่าง');
+        ok = false;
+      } else if (!fullName.checkValidity()) {
+        setError(fullName, nameErr, fullName.title);
+        ok = false;
+      } else {
+        clearError(fullName, nameErr);
+      }
+
+      // Phone: 10 digits, starts with 0
+      const phoneVal = phone.value.trim();
+      if (!phoneVal) {
+        setError(phone, phoneErr, 'กรุณากรอกเบอร์โทรศัพท์');
+        ok = false;
+      } else if (!/^0\d{9}$/.test(phoneVal)) {
+        setError(phone, phoneErr, 'รูปแบบไม่ถูกต้อง (ต้องมี 10 หลัก และขึ้นต้นด้วย 0)');
+        ok = false;
+      } else if (!phone.checkValidity()) {
+        setError(phone, phoneErr, phone.title);
+        ok = false;
+      } else {
+        clearError(phone, phoneErr);
+      }
+
+      // Type: required
+      const typeVal = ticketType.value;
+      if (!typeVal) {
+        setError(ticketType, typeErr, 'กรุณาเลือกประเภทตั๋ว');
+        ok = false;
+      } else {
+        clearError(ticketType, typeErr);
+      }
+
+      // Quantity: 1..5 and VIP/Premium <=2
+      let qtyVal = Number(qty.value);
+      if (!qty.value) {
+        setError(qty, qtyErr, 'กรุณาระบุจำนวนตั๋ว');
+        ok = false;
+      } else if (!Number.isInteger(qtyVal)) {
+        setError(qty, qtyErr, 'จำนวนต้องเป็นจำนวนเต็ม');
+        ok = false;
+      } else if (qtyVal < 1 || qtyVal > 5) {
+        setError(qty, qtyErr, 'จำนวนต้องอยู่ระหว่าง 1 ถึง 5');
+        ok = false;
+      } else if ((typeVal === 'vip' || typeVal === 'premium') && qtyVal > 2) {
+        setError(qty, qtyErr, 'VIP และ Premium จองได้ไม่เกิน 2 ใบ');
+        ok = false;
+      } else if (!qty.checkValidity()) {
+        setError(qty, qtyErr, 'จำนวนไม่อยู่ในช่วงที่กำหนด');
+        ok = false;
+      } else {
+        clearError(qty, qtyErr);
+      }
+
+      return ok;
+    }
+
+    // Modal control
+    function openModal(message) {
+      resultText.textContent = message;
+      modalBackdrop.classList.add('show');
+      modalBackdrop.removeAttribute('aria-hidden');
+      // Focus the close button for accessibility
+      setTimeout(() => closeModalBtn.focus(), 0);
+    }
+    function closeModal() {
+      modalBackdrop.classList.remove('show');
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+    }
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
+    closeModalBtn.addEventListener('click', closeModal);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Adjust max on load
+    updateQtyMaxByType();
+
+    // Submit
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const isValid = validate();
+      if (!isValid) {
+        // Let the browser also highlight invalid inputs if needed
+        form.reportValidity();
+        return;
+      }
+      const qtyVal = Number(qty.value);
+      const typeLabel = mapTypeLabel(ticketType.value);
+      openModal(`จองตั๋วสำเร็จ จำนวน: ${qtyVal} ประเภท: ${typeLabel}`);
+      // Optional: form.reset(); update max after reset
+      // form.reset();
+      // updateQtyMaxByType();
+    });
+  </script>
+</body>
+</html>
